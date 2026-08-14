@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A dummy OLX-inspired single page marketplace demo built with Tailwind CSS and vanilla JavaScript." />
+  <title>OLXy — Dummy Marketplace SPA</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#002f34",
+            mint: "#23e5db",
+            sunny: "#ffce32",
+            cloud: "#f2f4f5"
+          },
+          boxShadow: {
+            soft: "0 12px 35px rgba(0,47,52,.10)"
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    body { background: #f8fafb; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { scrollbar-width: none; }
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+    .pulse-dot {
+      box-shadow: 0 0 0 0 rgba(35,229,219,.7);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      70% { box-shadow: 0 0 0 10px rgba(35,229,219,0); }
+      100% { box-shadow: 0 0 0 0 rgba(35,229,219,0); }
+    }
+  </style>
+</head>
+
+<body class="text-slate-800 antialiased">
+  <div id="app"></div>
+
+  <script>
+    // ------------------------------------------------------------
+    // Dummy data
+    // ------------------------------------------------------------
+    const categories = [
+      { name: "Cars", icon: "🚗" },
+      { name: "Mobiles", icon: "📱" },
+      { name: "Bikes", icon: "🏍️" },
+      { name: "Furniture", icon: "🛋️" },
+      { name: "Electronics", icon: "💻" },
+      { name: "Fashion", icon: "👕" },
+      { name: "Pets", icon: "🐶" },
+      { name: "Jobs", icon: "💼" }
+    ];
+
+    const contributors = [
+      { name: "Aarav Sharma", role: "Frontend", initials: "AS" },
+      { name: "Meera Iyer", role: "UI / UX", initials: "MI" },
+      { name: "Kabir Khan", role: "JavaScript", initials: "KK" },
+      { name: "Tara Das", role: "Content", initials: "TD" }
+    ];
+
+    let listings = [
+      {
+        id: 1,
+        title: "iPhone 14 Pro • 128GB",
+        price: 67999,
+        category: "Mobiles",
+        location: "Bengaluru, Karnataka",
+        age: "2 days ago",
+        featured: true,
+        image: "https://images.unsplash.com/photo-1678685888221-cda773a3dcdb?auto=format&fit=crop&w=900&q=80",
+        description: "Excellent condition, battery health 91%. Box and original cable included. No repairs."
+      },
+      {
+        id: 2,
+        title: "Royal Enfield Classic 350",
+        price: 185000,
+        category: "Bikes",
+        location: "Pune, Maharashtra",
+        age: "Today",
+        featured: false,
+        image: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=900&q=80",
+        description: "Single owner, regularly serviced, clean papers. Test ride available on weekends."
+      },
+      {
+        id: 3,
+        title: "Modern 3-Seater Sofa",
+        price: 14500,
+        category: "Furniture",
+        location: "Gurugram, Haryana",
+        age: "1 day ago",
+        featured: false,
+        image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80",
+        description: "Comfortable fabric sofa in great condition. Selling due to relocation."
+      },
+      {
+        id: 4,
+        title: "MacBook Air M2 • 8/256GB",
+        price: 71999,
+        category: "Electronics",
+        location: "Mumbai, Maharashtra",
+        age: "3 hours ago",
+        featured: true,
+        image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80",
+        description: "Very lightly used. Includes charger and sleeve. No dents or scratches."
+      },
+      {
+        id: 5,
+        title: "Honda City VX 2021",
+        price: 975000,
+        category: "Cars",
+        location: "Delhi",
+        age: "4 days ago",
+        featured: false,
+        image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=80",
+        description: "Petrol manual, first owner, comprehensive insurance, full service history."
+      },
+      {
+        id: 6,
+        title: "Gaming Chair — Ergonomic",
+        price: 8500,
+        category: "Furniture",
+        location: "Hyderabad, Telangana",
+        age: "Yesterday",
+        featured: true,
+        image: "https://images.unsplash.com/photo-1598550476439-6847785fcea6?auto=format&fit=crop&w=900&q=80",
+        description: "Adjustable armrests, lumbar support and recline. Used for six months."
+      },
+      {
+        id: 7,
+        title: "Mirrorless Camera Kit",
+        price: 42500,
+        category: "Electronics",
+        location: "Chennai, Tamil Nadu",
+        age: "5 hours ago",
+        featured: false,
+        image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=80",
+        description: "Camera body, kit lens, two batteries and carrying bag included."
+      },
+      {
+        id: 8,
+        title: "Golden Retriever Puppy",
+        price: 18000,
+        category: "Pets",
+        location: "Kochi, Kerala",
+        age: "Today",
+        featured: false,
+        image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=900&q=80",
+        description: "Friendly and playful puppy. Vaccination record available."
+      }
+    ];
+
+    const state = {
+      route: "home",
+      selectedCategory: "All",
+      search: "",
+      location: "",
+      sort: "latest",
+      favorites: new Set(),
+      selectedListingId: null,
+      toast: ""
+    };
+
+    const money = value =>
+      new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0
+      }).format(value);
+
+    // ------------------------------------------------------------
+    // Router + render
+    // ------------------------------------------------------------
+    function navigate(route, payload = {}) {
+      state.route = route;
+      Object.assign(state, payload);
+      window.location.hash = route;
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    window.addEventListener("hashchange", () => {
+      const hash = location.hash.replace("#", "");
+      if (["home", "sell", "contributors"].includes(hash)) {
+        state.route = hash;
+        render();
+      }
+    });
+
+    function render() {
+      document.getElementById("app").innerHTML = `
+        ${header()}
+        <main>
+          ${state.route === "home" ? homeView() : ""}
+          ${state.route === "sell" ? sellView() : ""}
+          ${state.route === "contributors" ? contributorsView() : ""}
+        </main>
+        ${footer()}
+        ${state.selectedListingId ? listingModal() : ""}
+        ${state.toast ? toast() : ""}
+      `;
+    }
+
+    // ------------------------------------------------------------
+    // Components
+    // ------------------------------------------------------------
+    function header() {
+      return `
+        <header class="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
+          <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+            <button onclick="navigate('home')" class="group flex shrink-0 items-center gap-2">
+              <span class="grid h-10 w-10 place-items-center rounded-xl bg-ink text-lg font-black text-white transition group-hover:-rotate-3">OX</span>
+              <span class="hidden text-xl font-black tracking-tight text-ink sm:block">OLXy</span>
+            </button>
+
+            <div class="hidden min-w-44 items-center rounded-xl border-2 border-ink bg-white px-3 md:flex">
+              <span>📍</span>
+              <input
+                value="${escapeHtml(state.location)}"
+                oninput="state.location=this.value; render()"
+                class="w-full bg-transparent px-2 py-2.5 text-sm outline-none"
+                placeholder="India"
+              />
+            </div>
+
+            <div class="flex flex-1 overflow-hidden rounded-xl border-2 border-ink bg-white">
+              <input
+                id="searchInput"
+                value="${escapeHtml(state.search)}"
+                onkeydown="if(event.key==='Enter'){state.search=this.value;render()}"
+                class="min-w-0 flex-1 px-4 py-2.5 text-sm outline-none"
+                placeholder="Search cars, mobiles, furniture..."
+              />
+              <button
+                onclick="state.search=document.getElementById('searchInput').value; render()"
+                class="bg-ink px-5 text-white transition hover:bg-slate-700"
+                aria-label="Search"
+              >⌕</button>
+            </div>
+
+            <button
+              onclick="showToast('Login is disabled in this dummy demo.')"
+              class="hidden font-bold text-ink underline decoration-2 underline-offset-4 sm:block"
+            >Login</button>
+
+            <button
+              onclick="navigate('sell')"
+              class="rounded-full border-4 border-sunny bg-white px-5 py-2 text-sm font-black text-ink shadow-[0_0_0_3px_#23e5db] transition hover:-translate-y-0.5"
+            >＋ SELL</button>
+          </div>
+
+          <nav class="border-t border-slate-100 bg-white">
+            <div class="mx-auto flex max-w-7xl gap-5 overflow-x-auto px-4 py-2.5 text-sm hide-scrollbar sm:px-6 lg:px-8">
+              <button onclick="setCategory('All')" class="${state.selectedCategory === "All" ? "font-black text-ink" : "text-slate-600 hover:text-ink"} whitespace-nowrap">ALL CATEGORIES</button>
+              ${categories.map(c => `
+                <button onclick="setCategory('${c.name}')" class="${state.selectedCategory === c.name ? "font-black text-ink" : "text-slate-600 hover:text-ink"} whitespace-nowrap">${c.name}</button>
+              `).join("")}
+              <button onclick="navigate('contributors')" class="ml-auto whitespace-nowrap text-slate-600 hover:text-ink">Contributors</button>
+            </div>
+          </nav>
+        </header>
+      `;
+    }
+
+    function homeView() {
+      const filtered = getFilteredListings();
+
+      return `
+        <section class="bg-gradient-to-br from-[#e9ffff] via-white to-[#fff8df]">
+          <div class="mx-auto grid max-w-7xl items-center gap-8 px-4 py-12 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-16">
+            <div>
+              <div class="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-ink shadow-sm">
+                <span class="pulse-dot h-2 w-2 rounded-full bg-mint"></span>
+                Dummy marketplace demo
+              </div>
+              <h1 class="max-w-2xl text-4xl font-black tracking-tight text-ink sm:text-5xl">
+                Buy less new.<br />Find more nearby.
+              </h1>
+              <p class="mt-5 max-w-xl text-base leading-7 text-slate-600">
+                A single-file OLX-inspired marketplace SPA using Tailwind CSS and vanilla JavaScript.
+              </p>
+              <div class="mt-7 flex flex-wrap gap-3">
+                <button onclick="document.getElementById('listings').scrollIntoView()" class="rounded-xl bg-ink px-6 py-3 font-bold text-white transition hover:-translate-y-0.5">Browse listings</button>
+                <button onclick="navigate('sell')" class="rounded-xl border-2 border-ink bg-white px-6 py-3 font-bold text-ink transition hover:bg-cloud">Post an ad</button>
+              </div>
+            </div>
+
+            <div class="relative mx-auto w-full max-w-xl">
+              <div class="absolute -left-4 -top-4 h-20 w-20 rounded-3xl bg-mint opacity-60 blur-xl"></div>
+              <div class="absolute -bottom-5 -right-5 h-24 w-24 rounded-full bg-sunny opacity-60 blur-xl"></div>
+              <div class="relative grid grid-cols-2 gap-3 rounded-[2rem] border border-white bg-white/75 p-4 shadow-soft backdrop-blur">
+                ${listings.slice(0,4).map((item, i) => `
+                  <button onclick="openListing(${item.id})" class="${i===0 ? "col-span-2" : ""} overflow-hidden rounded-2xl bg-white text-left shadow-sm transition hover:-translate-y-1">
+                    <img src="${item.image}" alt="${item.title}" class="${i===0 ? "h-44" : "h-28"} w-full object-cover" />
+                    <div class="p-3">
+                      <p class="font-black text-ink">${money(item.price)}</p>
+                      <p class="truncate text-xs text-slate-500">${item.title}</p>
+                    </div>
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div class="mb-5 flex items-end justify-between">
+            <div>
+              <p class="text-xs font-black uppercase tracking-[.2em] text-teal-600">Explore</p>
+              <h2 class="mt-1 text-2xl font-black text-ink">Popular categories</h2>
+            </div>
+            <button onclick="setCategory('All')" class="text-sm font-bold text-ink underline underline-offset-4">View all</button>
+          </div>
+
+          <div class="grid grid-cols-4 gap-3 sm:grid-cols-8">
+            ${categories.map(c => `
+              <button onclick="setCategory('${c.name}')" class="group rounded-2xl border border-slate-200 bg-white p-3 text-center transition hover:-translate-y-1 hover:shadow-soft">
+                <div class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-cloud text-2xl transition group-hover:scale-110">${c.icon}</div>
+                <p class="mt-2 truncate text-xs font-bold text-ink">${c.name}</p>
+              </button>
+            `).join("")}
+          </div>
+        </section>
+
+        <section id="listings" class="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+          <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p class="text-sm text-slate-500">${filtered.length} result${filtered.length === 1 ? "" : "s"}</p>
+              <h2 class="text-2xl font-black text-ink">
+                ${state.selectedCategory === "All" ? "Fresh recommendations" : state.selectedCategory}
+              </h2>
+            </div>
+            <select
+              onchange="state.sort=this.value; render()"
+              class="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold outline-none"
+            >
+              <option value="latest" ${state.sort==="latest" ? "selected":""}>Sort: Latest</option>
+              <option value="low" ${state.sort==="low" ? "selected":""}>Price: Low to High</option>
+              <option value="high" ${state.sort==="high" ? "selected":""}>Price: High to Low</option>
+            </select>
+          </div>
+
+          ${filtered.length ? `
+            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              ${filtered.map(listingCard).join("")}
+            </div>
+          ` : `
+            <div class="rounded-3xl border-2 border-dashed border-slate-300 bg-white p-12 text-center">
+              <div class="text-5xl">🔎</div>
+              <h3 class="mt-4 text-xl font-black text-ink">No listings found</h3>
+              <p class="mt-2 text-slate-500">Try another search or category.</p>
+              <button onclick="clearFilters()" class="mt-5 rounded-xl bg-ink px-5 py-2.5 font-bold text-white">Clear filters</button>
+            </div>
+          `}
+        </section>
+
+        <section class="bg-ink">
+          <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-5 px-4 py-10 text-white sm:px-6 md:flex-row md:items-center lg:px-8">
+            <div>
+              <p class="text-sm font-bold text-mint">Ready to declutter?</p>
+              <h2 class="mt-1 text-2xl font-black">Turn unused stuff into someone else's find.</h2>
+            </div>
+            <button onclick="navigate('sell')" class="rounded-xl bg-white px-6 py-3 font-black text-ink">Post a free ad</button>
+          </div>
+        </section>
+      `;
+    }
+
+    function listingCard(item) {
+      const fav = state.favorites.has(item.id);
+
+      return `
+        <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
+          <div class="relative">
+            <button onclick="openListing(${item.id})" class="block w-full">
+              <img src="${item.image}" alt="${item.title}" class="h-52 w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
+            </button>
+            ${item.featured ? `<span class="absolute left-3 top-3 rounded bg-sunny px-2 py-1 text-[10px] font-black text-ink">FEATURED</span>` : ""}
+            <button
+              onclick="toggleFavorite(${item.id})"
+              class="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white text-lg shadow"
+              aria-label="Favorite"
+            >${fav ? "♥" : "♡"}</button>
+          </div>
+
+          <button onclick="openListing(${item.id})" class="block w-full p-4 text-left">
+            <p class="text-xl font-black text-ink">${money(item.price)}</p>
+            <h3 class="mt-1 line-clamp-2 min-h-10 font-semibold text-slate-700">${item.title}</h3>
+            <div class="mt-4 flex items-center justify-between gap-2 text-[11px] uppercase tracking-wide text-slate-400">
+              <span class="truncate">${item.location}</span>
+              <span class="shrink-0">${item.age}</span>
+            </div>
+          </button>
+        </article>
+      `;
+    }
+
+    function sellView() {
+      return `
+        <section class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+          <button onclick="navigate('home')" class="mb-6 text-sm font-bold text-ink">← Back to marketplace</button>
+
+          <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft sm:p-8">
+            <div class="mb-7">
+              <span class="rounded-full bg-[#e9ffff] px-3 py-1 text-xs font-black text-teal-700">DEMO FORM</span>
+              <h1 class="mt-3 text-3xl font-black text-ink">Post your ad</h1>
+              <p class="mt-2 text-slate-500">Add a dummy listing to this in-memory SPA. Refreshing the page resets it.</p>
+            </div>
+
+            <form onsubmit="submitAd(event)" class="grid gap-5">
+              <label>
+                <span class="mb-1.5 block text-sm font-bold text-ink">Ad title</span>
+                <input required name="title" maxlength="60" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-ink" placeholder="e.g. Pixel 9, barely used" />
+              </label>
+
+              <div class="grid gap-5 sm:grid-cols-2">
+                <label>
+                  <span class="mb-1.5 block text-sm font-bold text-ink">Price (₹)</span>
+                  <input required name="price" type="number" min="1" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-ink" placeholder="35000" />
+                </label>
+
+                <label>
+                  <span class="mb-1.5 block text-sm font-bold text-ink">Category</span>
+                  <select name="category" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-ink">
+                    ${categories.map(c => `<option>${c.name}</option>`).join("")}
+                  </select>
+                </label>
+              </div>
+
+              <label>
+                <span class="mb-1.5 block text-sm font-bold text-ink">Location</span>
+                <input required name="location" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-ink" placeholder="City, State" />
+              </label>
+
+              <label>
+                <span class="mb-1.5 block text-sm font-bold text-ink">Image URL</span>
+                <input name="image" type="url" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-ink" placeholder="https://..." />
+              </label>
+
+              <label>
+                <span class="mb-1.5 block text-sm font-bold text-ink">Description</span>
+                <textarea required name="description" rows="5" class="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-ink" placeholder="Describe the item..."></textarea>
+              </label>
+
+              <button class="rounded-xl bg-ink px-6 py-3.5 font-black text-white transition hover:-translate-y-0.5">Post ad</button>
+            </form>
+          </div>
+        </section>
+      `;
+    }
+
+    function contributorsView() {
+      return `
+        <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <button onclick="navigate('home')" class="mb-6 text-sm font-bold text-ink">← Back to marketplace</button>
+
+          <div class="overflow-hidden rounded-3xl bg-ink px-6 py-12 text-white sm:px-10">
+            <p class="text-sm font-black uppercase tracking-[.25em] text-mint">Built together</p>
+            <h1 class="mt-3 text-4xl font-black">Contributors</h1>
+            <p class="mt-3 max-w-2xl text-slate-300">
+              A simple contributor section for your dummy OLX-style SPA. Replace these names and roles with your real team.
+            </p>
+          </div>
+
+          <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            ${contributors.map((person, index) => `
+              <article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
+                <div class="grid h-14 w-14 place-items-center rounded-2xl ${index % 2 ? "bg-[#fff4cb]" : "bg-[#dffffd]"} text-lg font-black text-ink">${person.initials}</div>
+                <h2 class="mt-5 text-xl font-black text-ink">${person.name}</h2>
+                <p class="mt-1 text-sm text-slate-500">${person.role}</p>
+                <div class="mt-5 flex gap-2">
+                  <span class="rounded-full bg-cloud px-3 py-1 text-xs font-bold text-slate-600">Contributor</span>
+                </div>
+              </article>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function listingModal() {
+      const item = listings.find(x => x.id === state.selectedListingId);
+      if (!item) return "";
+
+      return `
+        <div class="fixed inset-0 z-50 grid place-items-center bg-black/55 p-4" onclick="closeListing(event)">
+          <div class="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-3xl bg-white shadow-2xl" data-modal>
+            <div class="relative">
+              <img src="${item.image}" alt="${item.title}" class="h-64 w-full object-cover sm:h-96" />
+              <button onclick="state.selectedListingId=null; render()" class="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white text-xl shadow">×</button>
+              ${item.featured ? `<span class="absolute bottom-4 left-4 rounded bg-sunny px-3 py-1 text-xs font-black text-ink">FEATURED</span>` : ""}
+            </div>
+
+            <div class="grid gap-7 p-6 sm:p-8 md:grid-cols-[1fr_280px]">
+              <div>
+                <p class="text-3xl font-black text-ink">${money(item.price)}</p>
+                <h2 class="mt-2 text-2xl font-black text-slate-800">${item.title}</h2>
+                <p class="mt-5 leading-7 text-slate-600">${item.description}</p>
+                <div class="mt-6 flex flex-wrap gap-2 text-xs font-bold">
+                  <span class="rounded-full bg-cloud px-3 py-1.5">${item.category}</span>
+                  <span class="rounded-full bg-cloud px-3 py-1.5">${item.location}</span>
+                  <span class="rounded-full bg-cloud px-3 py-1.5">${item.age}</span>
+                </div>
+              </div>
+
+              <aside class="rounded-2xl border border-slate-200 p-5">
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-400">Seller</p>
+                <div class="mt-3 flex items-center gap-3">
+                  <div class="grid h-11 w-11 place-items-center rounded-full bg-mint font-black text-ink">DS</div>
+                  <div>
+                    <p class="font-black text-ink">Demo Seller</p>
+                    <p class="text-xs text-slate-500">Member since 2024</p>
+                  </div>
+                </div>
+                <button onclick="showToast('Chat is disabled in this dummy demo.')" class="mt-5 w-full rounded-xl bg-ink py-3 font-black text-white">Chat with seller</button>
+                <button onclick="showToast('Phone reveal is disabled in this dummy demo.')" class="mt-2 w-full rounded-xl border-2 border-ink py-3 font-black text-ink">Show phone number</button>
+              </aside>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function footer() {
+      return `
+        <footer class="border-t border-slate-200 bg-white">
+          <div class="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-8 text-sm text-slate-500 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+            <div>
+              <p class="font-black text-ink">OLXy</p>
+              <p class="mt-1">Demo marketplace — not affiliated with OLX.</p>
+            </div>
+
+            <div class="flex flex-wrap gap-x-5 gap-y-2">
+              <button onclick="navigate('home')" class="hover:text-ink">Marketplace</button>
+              <button onclick="navigate('sell')" class="hover:text-ink">Sell</button>
+              <button onclick="navigate('contributors')" class="hover:text-ink">Contributors</button>
+            </div>
+
+            <p>© ${new Date().getFullYear()} Demo Project</p>
+          </div>
+        </footer>
+      `;
+    }
+
+    function toast() {
+      setTimeout(() => {
+        state.toast = "";
+        render();
+      }, 2200);
+
+      return `
+        <div class="fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 rounded-xl bg-ink px-5 py-3 text-sm font-bold text-white shadow-2xl">
+          ${escapeHtml(state.toast)}
+        </div>
+      `;
+    }
+
+    // ------------------------------------------------------------
+    // Actions
+    // ------------------------------------------------------------
+    function setCategory(category) {
+      state.selectedCategory = category;
+      state.route = "home";
+      render();
+      setTimeout(() => document.getElementById("listings")?.scrollIntoView({ behavior: "smooth" }), 0);
+    }
+
+    function getFilteredListings() {
+      let data = listings.filter(item => {
+        const matchesCategory = state.selectedCategory === "All" || item.category === state.selectedCategory;
+        const query = state.search.trim().toLowerCase();
+        const matchesSearch = !query ||
+          item.title.toLowerCase().includes(query) ||
+          item.category.toLowerCase().includes(query) ||
+          item.description.toLowerCase().includes(query);
+        const locationQuery = state.location.trim().toLowerCase();
+        const matchesLocation = !locationQuery || item.location.toLowerCase().includes(locationQuery);
+
+        return matchesCategory && matchesSearch && matchesLocation;
+      });
+
+      if (state.sort === "low") data = [...data].sort((a,b) => a.price - b.price);
+      if (state.sort === "high") data = [...data].sort((a,b) => b.price - a.price);
+
+      return data;
+    }
+
+    function clearFilters() {
+      state.selectedCategory = "All";
+      state.search = "";
+      state.location = "";
+      state.sort = "latest";
+      render();
+    }
+
+    function toggleFavorite(id) {
+      state.favorites.has(id) ? state.favorites.delete(id) : state.favorites.add(id);
+      render();
+    }
+
+    function openListing(id) {
+      state.selectedListingId = id;
+      render();
+    }
+
+    function closeListing(event) {
+      if (!event.target.closest("[data-modal]")) {
+        state.selectedListingId = null;
+        render();
+      }
+    }
+
+    function showToast(message) {
+      state.toast = message;
+      render();
+    }
+
+    function submitAd(event) {
+      event.preventDefault();
+      const form = new FormData(event.target);
+
+      const newListing = {
+        id: Date.now(),
+        title: form.get("title"),
+        price: Number(form.get("price")),
+        category: form.get("category"),
+        location: form.get("location"),
+        age: "Just now",
+        featured: false,
+        image: form.get("image") || "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=80",
+        description: form.get("description")
+      };
+
+      listings.unshift(newListing);
+      state.route = "home";
+      state.selectedCategory = "All";
+      state.search = "";
+      state.location = "";
+      state.toast = "Your dummy ad was posted.";
+      window.location.hash = "home";
+      render();
+    }
+
+    function escapeHtml(value = "") {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // Initial route
+    const initialRoute = location.hash.replace("#", "");
+    if (["home", "sell", "contributors"].includes(initialRoute)) state.route = initialRoute;
+    render();
+  </script>
+</body>
+</html>
